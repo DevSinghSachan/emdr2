@@ -1,5 +1,3 @@
-
-
 <a id="contents"></a>
 # Contents
 <!-- MarkdownTOC -->
@@ -132,3 +130,4 @@ Please also consider citing the following paper, if the code is helpful.
     pages = "6648--6662"
 }
 ```
+
