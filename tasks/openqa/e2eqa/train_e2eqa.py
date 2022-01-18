@@ -623,8 +623,7 @@ def train(train_valid_datasets_provider, model_provider,
     if end_of_training_validation_callback is not None:
         print_rank_0('evaluating on validation data, setting epoch to -1')
         torch.distributed.barrier(mpu.get_data_parallel_group())
-        end_of_training_validation_callback(model, epoch=-1,
-                                            output_predictions=True)
+        end_of_training_validation_callback(model, epoch=-1)
         torch.distributed.barrier(mpu.get_data_parallel_group())
 
     # Evaluate after the training step on test data
@@ -636,8 +635,7 @@ def train(train_valid_datasets_provider, model_provider,
         if end_of_training_test_callback is not None:
             print_rank_0('evaluating on test data, setting epoch to -1')
             torch.distributed.barrier(mpu.get_data_parallel_group())
-            end_of_training_test_callback(model, epoch=-1,
-                                          output_predictions=True)
+            end_of_training_test_callback(model, epoch=-1)
             torch.distributed.barrier(mpu.get_data_parallel_group())
 
     print_rank_0('done :-)')
