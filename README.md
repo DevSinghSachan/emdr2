@@ -77,11 +77,20 @@ We've provided several scripts for training models for both dense retriever and 
 
 Please ensure to change the data and checkpoint paths in these scripts.
 
-To replicate the answer generation results on the TriviaQA dataset, run the script as
+To replicate the answer generation results on the Natural Questions (NQ) dataset, run the script as
 ```
-bash examples/openqa/emdr2_trivia.sh
+bash examples/openqa/emdr2_nq.sh
 ```
-Similar scripts are provided for Natural Questions, WebQuestions and also for dense retriever.
+
+We also provide a pre-trained checkpoint for NQ dataset that evaluates to Dev EM=50.42 and Test EM=52.49.
+- [Best NQ checkpoint at step 9896](https://www.dropbox.com/s/kqc4e8kjx5bxebv/iter_0009896.tar.gz)
+- [Precomputed Evidence Index with this checkpoint](https://www.dropbox.com/s/pbejkxpjz4791s7/nq-ssm-step9000.pkl)
+
+To use this checkpoint, please set the variables of `CHECKPOINT_PATH` and `EMBEDDING_PATH` to point to the above checkpoint and index, respectively. 
+Also, remove the options of `--emdr2-training --async-indexer --index-reload-interval 500` from the example script.
+
+
+Similar scripts are provided for TriviaQA, WebQuestions and also for dense retriever.
 
 
 <a id="training"></a>

@@ -1,10 +1,14 @@
 from megatron.initialize import initialize_megatron, get_args
+from megatron.global_vars import set_global_variables
 from tasks.openqa.dense_retriever.evaluation.evaluate import OpenRetrievalEvaluator
 
 
 def main():
-    initialize_megatron(extra_args_provider=None,
-                        args_defaults={'tokenizer_type': 'BertWordPieceLowerCase'})
+    set_global_variables(extra_args_provider=None,
+                         args_defaults={'tokenizer_type': 'BertWordPieceLowerCase'},
+                         ignore_unknown_args=False)
+    initialize_megatron()
+
     args = get_args()
     evaluator = OpenRetrievalEvaluator()
 
