@@ -605,7 +605,7 @@ def train(train_valid_datasets_provider, model_provider,
     print_rank_0('training ...')
 
     # Finetune the model.
-    if args.epochs > 0:
+    if args.epochs > 0 and args.emdr2_training:
         _train(model,
                optimizer,
                lr_scheduler,
