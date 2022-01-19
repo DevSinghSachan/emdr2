@@ -179,7 +179,10 @@ class OpenRetrievalEvaluator(object):
 
             all_data.append(item)
 
-        with open(qa_file + ".retout.json", "w") as writer:
-            writer.write(json.dumps(all_data, indent=4) + "\n")
+        if torch.distributed.get_rank() == 0:
+            with open(qa_file + ".retout.json", "w") as writer:
+                writer.write(json.dumps(all_data, indent=4) + "\n")
+
+        torch.distributed.barrier()
 
         return
