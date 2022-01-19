@@ -1,5 +1,8 @@
+import math
+import json
 import torch
-from megatron import get_args, print_rank_0
+import torch.nn.functional as F
+from megatron import get_args, print_rank_0, get_tokenizer
 from megatron.training import get_model
 from megatron.model.dualencoder_model import dualencoder_model_provider
 from megatron.checkpointing import load_dualencoder_checkpoint
@@ -53,7 +56,9 @@ class OpenRetrievalEvaluator(object):
         self.eval_dataset = get_qa_dataset(qa_file, split)
         dataloader = get_one_epoch_qa_dataloader(self.eval_dataset)
 
+        tokenizer = get_tokenizer()
         query_vectors = []
+        query_list = []
         reference_list = []
 
         for batch in dataloader:
@@ -71,6 +76,9 @@ class OpenRetrievalEvaluator(object):
                                                           query_mask,
                                                           query_types)
 
+            for i in range(len(query_tokens)):
+                query_list.append(tokenizer.decode(query_tokens[i].tolist()[:query_len[i]]))
+
             reference_list.extend(reference)
             query_vectors.extend(query_logits.split(1, dim=0))
             if len(query_vectors) % 100 == 0:
@@ -80,11 +88,11 @@ class OpenRetrievalEvaluator(object):
         print_rank_0('Total encoded queries tensor {}'.format(query_tensor.size()))
 
         assert query_tensor.size(0) == len(self.eval_dataset)
-        return query_tensor, reference_list
+        return query_list, query_tensor, reference_list
 
     def evaluate(self, qa_file, split):
         args = get_args()
-        query_tensor, reference_list = self.generate_query_vectors(qa_file, split)
+        query_list, query_tensor, reference_list = self.generate_query_vectors(qa_file, split)
 
         local_rank = args.local_rank
         rank = torch.distributed.get_rank()
@@ -126,8 +134,11 @@ class OpenRetrievalEvaluator(object):
         distance = torch.split(distance, len(query_tensor), dim=0)[local_rank]
         topkindex = torch.split(topkindex, len(query_tensor), dim=0)[local_rank]
 
+        topk_sim_scores = distance / math.sqrt(args.hidden_size)
+        topk_probs = F.softmax(topk_sim_scores, dim=1)
+
         top_ids_and_scores = []
-        for darray, topkarray in zip(distance, topkindex):
+        for darray, topkarray in zip(topk_probs, topkindex):
             top_ids_and_scores.append((topkarray.tolist(), darray.tolist()))
 
         passages = self.evidence_dataset.id2text
@@ -137,13 +148,38 @@ class OpenRetrievalEvaluator(object):
                                         workers_num=args.num_workers,
                                         match_type=args.match)
         top_k_hits = match_stats.top_k_hits
+        doc_hits = match_stats.questions_doc_hits
 
         print_rank_0("{} SET RESULTS".format(split))
-        print_rank_0("topk-{} documents hits {}".format(args.topk_retrievals, top_k_hits))
+        # print_rank_0("topk-{} documents hits {}".format(args.topk_retrievals, top_k_hits))
         top_k_hits = [v / len(top_ids_and_scores) for v in top_k_hits]
-        print_rank_0("top-k documents hits accuracy {}".format(top_k_hits))
+        # print_rank_0("top-k documents hits accuracy {}".format(top_k_hits))
 
         for i in args.report_topk_accuracies:
             print_rank_0("top-{}: {:.2f}".format(i, top_k_hits[i-1] * 100))
+
+        all_data = []
+        for i, (q, d, r) in enumerate(zip(query_list, doc_hits, reference_list)):
+            ctx_list = []
+            for j in range(args.topk_retrievals):
+                # string_template = "question={}|hits={}|answers={}|doc={}|prob={}"
+                # string_template = string_template.format(q, d[j], r, passages[top_ids_and_scores[i][0][j]],
+                #                                          top_ids_and_scores[i][1][j])
+                # print_rank_0(string_template)
+                ctx = {"id": top_ids_and_scores[i][0][j],
+                       "title": passages[top_ids_and_scores[i][0][j]][1],
+                       "text": passages[top_ids_and_scores[i][0][j]][0],
+                       "score": top_ids_and_scores[i][1][j],
+                       "has_answer": d[j]}
+                ctx_list.append(ctx)
+
+            item = {"question": q,
+                    "answers": r,
+                    "ctxs": ctx_list}
+
+            all_data.append(item)
+
+        with open(qa_file + ".retout.json", "w") as writer:
+            writer.write(json.dumps(all_data, indent=4) + "\n")
 
         return
