@@ -6,6 +6,8 @@
 - [Downloading Data and Checkpoints](#downloading-data-and-checkpoints)
 - [Usage](#usage)
 - [Training](#training)
+- [Pre-trained Checkpoints](#pre-trained-checkpoints)
+- [Helper Scripts](#helper-scripts)
 - [Issues](#issues)
 
 <!-- /MarkdownTOC -->
@@ -67,7 +69,7 @@ Required training files
 Required checkpoints and embeddings
 - [Masked Salient Span (MSS) pre-trained retriver](https://www.dropbox.com/s/069xj395ftxv4hz/mss-emdr2-retriever-base-steps82k.tar.gz)
 - [Masked Salient Span (MSS) pre-trained reader](https://www.dropbox.com/s/33lm2685ifpei4l/mss-emdr2-reader-base-steps82k.tar.gz)
-- [Precomputed Evidence Index using MSS retriever](https://www.dropbox.com/s/y7rg8u41yavje0y/psgs_w100_emdr2-retriever-base-steps82k_full-wikipedia_base.pkl): This is a big file with 32 GB size.
+- [Precomputed Evidence Embedding using MSS retriever](https://www.dropbox.com/s/y7rg8u41yavje0y/psgs_w100_emdr2-retriever-base-steps82k_full-wikipedia_base.pkl): This is a big file with 32 GB size.
 
 
 <a id="usage"></a>
@@ -82,16 +84,7 @@ To replicate the answer generation results on the Natural Questions (NQ) dataset
 bash examples/openqa/emdr2_nq.sh
 ```
 
-We also provide a pre-trained checkpoint for NQ dataset that evaluates to Dev EM=50.42 and Test EM=52.49.
-- [Best NQ checkpoint at step 9896](https://www.dropbox.com/s/kqc4e8kjx5bxebv/iter_0009896.tar.gz)
-- [Precomputed Evidence Index with this checkpoint](https://www.dropbox.com/s/pbejkxpjz4791s7/nq-ssm-step9000.pkl)
-
-To use this checkpoint, please set the variables of `CHECKPOINT_PATH` and `EMBEDDING_PATH` to point to the above checkpoint and index, respectively. 
-Also, remove the options of `--emdr2-training --async-indexer --index-reload-interval 500` from the example script.
-
-
-Similar scripts are provided for TriviaQA, WebQuestions and also for dense retriever.
-
+Similar scripts are provided for TriviaQA, WebQuestions and also for training dense retriever.
 
 <a id="training"></a>
 # Training
@@ -101,6 +94,36 @@ For end-to-end training, we used a single node of 16 A100 GPUs with 40GB GPU mem
 In the codebase, the first set of 8 GPUs are used for model training, the second set of 8 GPUs are used for asynchronous evidence embedding, and all the 16 GPUs are used for online retrieval at every step. 
  
 The code can also be run on a node with 8 GPUs by disabling asynchronous evidence embedding computation. However, this can lead to some loss in performance.
+
+
+<a id="pre-trained-checkpoints"></a>
+# Pre-trained Checkpoints
+
+Dataset | Dev EM | Test EM | Checkpoint | Precomputed Evidence Embedding
+--------|--------|---------|:-----------:|:-------------------------:
+Natural Questions | 50.42 | 52.49 | [link](https://www.dropbox.com/s/kqc4e8kjx5bxebv/iter_0009896.tar.gz) | [link](https://www.dropbox.com/s/pbejkxpjz4791s7/nq-ssm-step9000.pkl)
+TriviaQA | 71.13 | 71.43 | [link](https://www.dropbox.com/s/88qeuutqdiai218/iter_0003250.tar.gz) | [link](https://www.dropbox.com/s/tlt7xhcb2n8tslk/trivia-ssm-step2500.pkl)
+WebQuestions | 49.86 | 48.67 | [link](https://www.dropbox.com/s/dj7f3o6o2gk6l26/iter_0003408.tar.gz) | [link](https://www.dropbox.com/s/lza8ziq2yj992ru/webq-ssm-step2500.pkl)
+
+To use these checkpoints, please set the variables of `CHECKPOINT_PATH` and `EMBEDDING_PATH` to point to the above checkpoint and embedding index, respectively. 
+Also, add the option of `--no-load-optim` and remove the options of `--emdr2-training --async-indexer --index-reload-interval 500` from the example script, so that it works in inference mode.
+As the memory requirement for inference is lower, evaluation can also be performed on 4-8 GPUs.
+
+
+<a id="helper-scripts"></a>
+# Helper Scripts
+
+- Sometimes, we need to save the retriever model for tasks such as top-K recall evaluation. To just save the retriever model from the checkpoints, please use this cmd
+
+```bash
+python tools/save_emdr2_models.py --submodel-name retriever --load e2eqa/trivia --save e2eqa/trivia/retriever/
+```
+
+- To create evidence embeddings from a retriever checkpoint and perform top-K recall evaluation, please use this script. Make sure to correctly set the paths of datasets and checkpoints.
+
+```bash 
+bash examples/helper-scripts/create_wiki_indexes_and_evaluate.sh
+```
 
 <a id="issues"></a>
 # Issues
