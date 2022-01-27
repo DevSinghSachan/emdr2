@@ -166,9 +166,11 @@ class OpenRetrievalEvaluator(object):
                 # string_template = string_template.format(q, d[j], r, passages[top_ids_and_scores[i][0][j]],
                 #                                          top_ids_and_scores[i][1][j])
                 # print_rank_0(string_template)
+
+                # "title": passages[top_ids_and_scores[i][0][j]][1],
+                # "text": passages[top_ids_and_scores[i][0][j]][0],
+
                 ctx = {"id": top_ids_and_scores[i][0][j],
-                       "title": passages[top_ids_and_scores[i][0][j]][1],
-                       "text": passages[top_ids_and_scores[i][0][j]][0],
                        "score": top_ids_and_scores[i][1][j],
                        "has_answer": d[j]}
                 ctx_list.append(ctx)
