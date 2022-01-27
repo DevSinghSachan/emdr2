@@ -18,6 +18,9 @@ def main():
     if args.qa_file_test is not None:
         evaluator.evaluate(args.qa_file_test, "TEST")
 
+    if args.qa_file_train is not None:
+        evaluator.evaluate(args.qa_file_train, "TRAIN")
+
 
 if __name__ == "__main__":
     main()
