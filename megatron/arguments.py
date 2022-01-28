@@ -421,6 +421,9 @@ def _add_data_args(parser):
     group.add_argument('--qa-file-test', type=str, default=None,
                        help='Path to the QA dataset test file.')
 
+    group.add_argument('--qa-file-train', type=str, default=None,
+                       help='Path to the QA dataset train file.')
+
     group.add_argument('--split', type=str, default='969, 30, 1',
                        help='Comma-separated list of proportions for training,'
                        ' validation, and test split. For example the split '
@@ -576,6 +579,8 @@ def _add_emdr2_args(parser):
                         help="Answer matching logic type")
     group.add_argument('--topk-retrievals', type=int, default=100,
                        help='Number of blocks to use as top-k during retrieval')
+    group.add_argument('--save-topk-outputs-path', type=str, default=None,
+                       help='Path of directory to save the topk outputs from retriever')
 
     # indexer
     group.add_argument('--indexer-batch-size', type=int, default=128,
