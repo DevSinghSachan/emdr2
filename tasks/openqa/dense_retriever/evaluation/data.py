@@ -5,7 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 from torch.utils.data import Dataset, BatchSampler
-from megatron import print_rank_0, get_args, get_tokenizer
+from megatron.data.samplers import DistributedBatchSampler
+from megatron import print_rank_0, get_args, get_tokenizer, mpu
 from megatron.data.mask_creation_utils import make_attention_mask
 
 
@@ -39,7 +40,10 @@ class CustomDataLoader(DataLoader):
 
     def _collate_fn(self, batch_data):
         # generate batch
-        # batch_size = len(batch_data)
+        batch_size = len(batch_data)
+        if batch_size == 0:
+            raise StopIteration
+
         tensorized = OrderedDict()
         for d in batch_data:
             for k, v in d.items():
@@ -59,15 +63,26 @@ def get_one_epoch_qa_dataloader(dataset, batch_size=None):
     """
 
     args = get_args()
+
+    world_size = mpu.get_data_parallel_world_size()
+    rank = mpu.get_data_parallel_rank()
+
     if batch_size is None:
         batch_size = args.batch_size
     num_workers = args.num_workers
+    global_batch_size = batch_size * world_size
 
     sampler = torch.utils.data.SequentialSampler(dataset)
     # importantly, drop_last must be False to get all the data.
-    batch_sampler = BatchSampler(sampler,
-                                 batch_size=batch_size,
-                                 drop_last=False)
+    # batch_sampler = BatchSampler(sampler,
+    #                              batch_size=batch_size,
+    #                              drop_last=False)
+
+    batch_sampler = DistributedBatchSampler(sampler,
+                                            batch_size=global_batch_size,
+                                            drop_last=False,
+                                            rank=rank,
+                                            world_size=world_size)
 
     # Data loader. Note that batch size is the per GPU batch size.
     data_loader = CustomDataLoader(dataset,
