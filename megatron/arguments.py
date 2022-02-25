@@ -415,6 +415,9 @@ def _add_data_args(parser):
     group.add_argument('--data-path', type=str, default=None,
                        help='Path to combined dataset to split.')
 
+    group.add_argument('--glob', action='store_true',
+                       help = 'if the dev/ test file paths are glob paths')
+
     group.add_argument('--qa-file-dev', type=str, default=None,
                        help='Path to the QA dataset dev file.')
 
