@@ -102,7 +102,7 @@ The code can also be run on a node with 8 GPUs by disabling asynchronous evidenc
 Dataset | Dev EM | Test EM | Checkpoint | Precomputed Evidence Embedding
 --------|--------|---------|:-----------:|:-------------------------:
 Natural Questions | 50.42 | 52.49 | [link](https://www.dropbox.com/s/kqc4e8kjx5bxebv/iter_0009896.tar.gz) | [link](https://www.dropbox.com/s/pbejkxpjz4791s7/nq-ssm-step9000.pkl)
-TriviaQA | 71.13 | 71.43 | [link](https://www.dropbox.com/s/88qeuutqdiai218/iter_0003250.tar.gz) | [link](https://www.dropbox.com/s/tlt7xhcb2n8tslk/trivia-ssm-step2500.pkl)
+TriviaQA | 71.13 | 71.43 | [link](https://www.dropbox.com/s/88qeuutqdiai218/iter_0003250.tar.gz) | [link](https://www.dropbox.com/s/ydav0jzny4ihztm/trivia-ssm-step3250.pkl)
 WebQuestions | 49.86 | 48.67 | [link](https://www.dropbox.com/s/dj7f3o6o2gk6l26/iter_0003408.tar.gz) | [link](https://www.dropbox.com/s/lza8ziq2yj992ru/webq-ssm-step2500.pkl)
 
 To use these checkpoints, please set the variables of `CHECKPOINT_PATH` and `EMBEDDING_PATH` to point to the above checkpoint and embedding index, respectively. 
