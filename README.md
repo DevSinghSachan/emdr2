@@ -59,19 +59,34 @@ sudo docker run --ipc=host --gpus all -it --rm -v /mnt/disks:/mnt/disks nvcr.io/
 
 <a id="downloading-data-and-checkpoints"></a>
 ## Downloading Data and Checkpoints
-We've provided pretrained checkpoints and datasets on Dropbox for use to train models for dense retrieval and open-domain QA tasks. 
-This data can be downloaded here:
+We've provided pretrained checkpoints and datasets on Dropbox for use to train models for open-domain QA tasks and dense retrieval. 
+These files can be downloaded using the `wget` command-line utility and the links provided below.
 
-Required training files
-- [Wikipedia Evidence Documents from DPR paper](https://www.dropbox.com/s/bezryc9win2bha1/psgs_w100.tar.gz)
-- [Indexed evidence documents and titles](https://www.dropbox.com/s/nc49dkno8o3pgb3/evidence-wikipedia-indexed-mmap.tar.gz)
+##### Required data files for training / inference
+- [Wikipedia evidence passages from DPR paper](https://www.dropbox.com/s/bezryc9win2bha1/psgs_w100.tar.gz)
+- [Pre-tokenized evidence passages and their titles](https://www.dropbox.com/s/nc49dkno8o3pgb3/evidence-wikipedia-indexed-mmap.tar.gz)
 - [Dataset-specific question-answer pairs](https://www.dropbox.com/s/gm0y3lx1wv0uxx2/qas.tar.gz)
 - [BERT-large vocabulary file](https://www.dropbox.com/s/ttblv1uggd4cijt/bert-large-uncased-vocab.txt)
 
-Required checkpoints and embeddings
-- [Masked Salient Span (MSS) pre-trained retriver](https://www.dropbox.com/s/069xj395ftxv4hz/mss-emdr2-retriever-base-steps82k.tar.gz)
+##### Required checkpoints and embeddings
+- [Masked Salient Span (MSS) pre-trained retriever](https://www.dropbox.com/s/069xj395ftxv4hz/mss-emdr2-retriever-base-steps82k.tar.gz)
 - [Masked Salient Span (MSS) pre-trained reader](https://www.dropbox.com/s/33lm2685ifpei4l/mss-emdr2-reader-base-steps82k.tar.gz)
-- [Precomputed Evidence Embedding using MSS retriever](https://www.dropbox.com/s/y7rg8u41yavje0y/psgs_w100_emdr2-retriever-base-steps82k_full-wikipedia_base.pkl): This is a big file with 32 GB size.
+- [Precomputed evidence embedding using MSS retriever](https://www.dropbox.com/s/y7rg8u41yavje0y/psgs_w100_emdr2-retriever-base-steps82k_full-wikipedia_base.pkl): This is a big file with 32 GB size.
+
+
+##### Data for Masked Salient Spans (MSS) training (Optional)
+We also provide data for Masked Salient Spans training [(URL)](https://www.dropbox.com/s/yk27c88tsf39vxd/filtered_sentences.tar.gz).
+This file contains around 20M sentences extracted from the Wikipedia passages file and includes the positions of the named entities in the sentences.
+To obtain these named entities, we used pre-trained OntoNotes-5.0 model provided by the Stanza toolkit. 
+
+An example line from the file in jsonlines format is:
+```json
+{"doc_id": 209, "sent_text": "Karpov 's outstanding classical tournament play has been seriously limited since 1997 , since he prefers to be more involved in the politics of his home country of Russia .", 
+"bert_ent_pos": [[14, 14], [31, 31]], "linguistic_ent": [["1997", "DATE", 11, 11], ["Russia", "GPE", 28, 28]]}
+```
+Here, the fields `doc_id` indicates the passage id in the evidence, `sent_text` denotes the sentence text as obtained after Stanza tokenization, `linguistic_ent` contains the list of named entities in this format: (named entity text, entity type, entity start position, entity end position), and `bert_ent_pos` contains the entities start and end positions after BERT tokenization.  
+
+For more details on MSS training, please refer to the papers below. 
 
 
 <a id="usage"></a>
@@ -134,7 +149,7 @@ For any errors or bugs in the codebase, please either open a new issue or send a
 
 # Citation
 
-If you find this code useful, please consider citing our paper as:
+If you find these codes or data useful, please consider citing our paper as:
 
 ```
 @inproceedings{sachan2021endtoend,
